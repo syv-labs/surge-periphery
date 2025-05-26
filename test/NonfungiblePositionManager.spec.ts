@@ -705,7 +705,7 @@ describe('NonfungiblePositionManager', () => {
 
     it('transfers tokens owed from burn', async () => {
       await nft.connect(other).decreaseLiquidity({ tokenId, liquidity: 50, amount0Min: 0, amount1Min: 0, deadline: 1 })
-      const poolAddress = computePoolAddress(factory.address, [tokens[0].address, tokens[1].address], FeeAmount.MEDIUM)
+      const poolAddress = await factory.getPool(tokens[0].address, tokens[1].address, FeeAmount.MEDIUM)
       await expect(
         nft.connect(other).collect({
           tokenId,
@@ -1064,8 +1064,9 @@ describe('NonfungiblePositionManager', () => {
     }
 
     it('executes all the actions', async () => {
+      const poolAddress = await factory.getPool(tokens[0].address, tokens[1].address, FeeAmount.MEDIUM)
       const pool = poolAtAddress(
-        computePoolAddress(factory.address, [tokens[0].address, tokens[1].address], FeeAmount.MEDIUM),
+        poolAddress,
         wallet
       )
       await expect(
@@ -1208,11 +1209,7 @@ describe('NonfungiblePositionManager', () => {
       })
 
       it('actually collected', async () => {
-        const poolAddress = computePoolAddress(
-          factory.address,
-          [tokens[0].address, tokens[1].address],
-          FeeAmount.MEDIUM
-        )
+        const poolAddress = await factory.getPool(tokens[0].address, tokens[1].address, FeeAmount.MEDIUM)
 
         await expect(
           nft.collect({
