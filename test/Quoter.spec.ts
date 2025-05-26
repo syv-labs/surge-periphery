@@ -1,6 +1,6 @@
 import { Fixture } from 'ethereum-waffle'
 import { constants, Wallet } from 'ethers'
-import { ethers, waffle } from 'hardhat'
+import { ethers, upgrades, waffle } from 'hardhat'
 import { MockTimeNonfungiblePositionManager, Quoter, TestERC20 } from '../typechain'
 import completeFixture from './shared/completeFixture'
 import { FeeAmount, MaxUint128, TICK_SPACINGS } from './shared/constants'
@@ -30,7 +30,7 @@ describe('Quoter', () => {
     }
 
     const quoterFactory = await ethers.getContractFactory('Quoter')
-    quoter = (await quoterFactory.deploy(factory.address, weth9.address)) as Quoter
+    quoter = (await upgrades.deployProxy(quoterFactory, [factory.address, weth9.address])) as Quoter
 
     return {
       tokens,

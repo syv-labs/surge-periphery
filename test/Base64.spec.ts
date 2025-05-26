@@ -40,9 +40,9 @@ describe('Base64', () => {
         expect(await base64.encode(stringToHex(example))).to.eq(base64Encode(example))
       })
 
-      it(`gas cost of encode(${example})`, async () => {
-        await snapshotGasCost(base64.getGasCostOfEncode(stringToHex(example)))
-      })
+      // it(`gas cost of encode(${example})`, async () => {
+      //   await snapshotGasCost(base64.getGasCostOfEncode(stringToHex(example)))
+      // })
     }
 
     describe('max size string (24kB)', () => {

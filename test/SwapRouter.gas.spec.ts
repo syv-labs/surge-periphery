@@ -1,4 +1,4 @@
-import { abi as IPoolABI } from '@syvlabs/surge-core/artifacts/contracts/interfaces/IPool.sol/IPool.json'
+import { abi as IPoolABI } from './contracts/Pool.json'
 import { Fixture } from 'ethereum-waffle'
 import { BigNumber, constants, ContractTransaction, Wallet } from 'ethers'
 import { ethers, waffle } from 'hardhat'

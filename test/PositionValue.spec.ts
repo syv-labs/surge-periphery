@@ -20,7 +20,7 @@ import snapshotGasCost from './shared/snapshotGasCost'
 
 import { expect } from './shared/expect'
 
-import { abi as IPoolABI } from '@syvlabs/surge-core/artifacts/contracts/interfaces/IPool.sol/IPool.json'
+import { abi as IPoolABI } from './contracts/Pool.json'
 
 describe('PositionValue', async () => {
   const [...wallets] = waffle.provider.getWallets()
@@ -73,7 +73,7 @@ describe('PositionValue', async () => {
       encodePriceSqrt(1, 1)
     )
 
-    const poolAddress = computePoolAddress(factory.address, [tokens[0].address, tokens[1].address], FeeAmount.MEDIUM)
+    const poolAddress = await factory.getPool(tokens[0].address, tokens[1].address, FeeAmount.MEDIUM)
     pool = new ethers.Contract(poolAddress, IPoolABI, wallets[0])
   })
 

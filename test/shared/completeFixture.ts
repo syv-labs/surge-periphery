@@ -1,7 +1,9 @@
 import { Fixture } from 'ethereum-waffle'
-import { ethers } from 'hardhat'
+import { ethers, upgrades } from 'hardhat'
+import { waffle } from 'hardhat'
 import { v3RouterFixture } from './externalFixtures'
 import { constants } from 'ethers'
+import poolABi from '../contracts/Pool.json'
 import {
   IWETH9,
   MockTimeNonfungiblePositionManager,
@@ -21,6 +23,22 @@ const completeFixture: Fixture<{
 }> = async ([wallet], provider) => {
   const { weth9, factory, router } = await v3RouterFixture([wallet], provider)
 
+  // Deploy proxy admin
+  const proxyAdminFactory = await ethers.getContractFactory('ProxyAdmin')
+  const proxyAdmin = await proxyAdminFactory.deploy()
+
+  // Deploy pool implementation using bytecode and ABI
+  const poolImplementation = await waffle.deployContract(wallet, {
+    bytecode: poolABi.bytecode,
+    abi: poolABi.abi,
+  })
+
+  // Initialize factory with deployed addresses
+  await factory.initialize(
+    poolImplementation.address,
+    proxyAdmin.address
+  )
+
   const tokenFactory = await ethers.getContractFactory('TestERC20')
   const tokens: [TestERC20, TestERC20, TestERC20] = [
     (await tokenFactory.deploy(constants.MaxUint256.div(2))) as TestERC20, // do not use maxu256 to avoid overflowing
@@ -35,11 +53,13 @@ const completeFixture: Fixture<{
       NFTDescriptor: nftDescriptorLibrary.address,
     },
   })
-  const nftDescriptor = (await positionDescriptorFactory.deploy(
+  const nftDescriptor = (await upgrades.deployProxy(positionDescriptorFactory, [
     tokens[0].address,
     // 'ETH' as a bytes32 string
     '0x4554480000000000000000000000000000000000000000000000000000000000'
-  )) as NonfungibleTokenPositionDescriptor
+  ], {
+    unsafeAllowLinkedLibraries: true
+  })) as NonfungibleTokenPositionDescriptor
 
   const positionManagerFactory = await ethers.getContractFactory('MockTimeNonfungiblePositionManager')
   const nft = (await positionManagerFactory.deploy(

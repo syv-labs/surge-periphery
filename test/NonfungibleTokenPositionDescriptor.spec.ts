@@ -1,5 +1,5 @@
 import { constants, Wallet } from 'ethers'
-import { waffle, ethers } from 'hardhat'
+import { waffle, ethers, upgrades } from 'hardhat'
 import { expect } from './shared/expect'
 import { Fixture } from 'ethereum-waffle'
 import { NonfungibleTokenPositionDescriptor, MockTimeNonfungiblePositionManager, TestERC20 } from '../typechain'
@@ -202,10 +202,13 @@ describe('NonfungibleTokenPositionDescriptor', () => {
           NFTDescriptor: nftDescriptorLibrary.address,
         },
       })
-      const nftDescriptor = (await positionDescriptorFactory.deploy(
+      const nftDescriptor = (await upgrades.deployProxy(positionDescriptorFactory,[
         weth9.address,
         // 'FUNNYMONEY' as a bytes32 string
-        '0x46554e4e594d4f4e455900000000000000000000000000000000000000000000'
+        '0x46554e4e594d4f4e455900000000000000000000000000000000000000000000'],
+        {
+          unsafeAllowLinkedLibraries: true
+        }
       )) as NonfungibleTokenPositionDescriptor
 
       const metadata = extractJSONFromURI(await nftDescriptor.tokenURI(nft.address, 1))

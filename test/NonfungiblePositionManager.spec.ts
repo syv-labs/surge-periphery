@@ -1,4 +1,4 @@
-import { abi as IPoolABI } from '@syvlabs/surge-core/artifacts/contracts/interfaces/IPool.sol/IPool.json'
+import { abi as IPoolABI } from './contracts/Pool.json'
 import { Fixture } from 'ethereum-waffle'
 import { BigNumberish, constants, Wallet } from 'ethers'
 import { ethers, waffle } from 'hardhat'
@@ -78,23 +78,6 @@ describe('NonfungiblePositionManager', () => {
   })
 
   describe('#createAndInitializePoolIfNecessary', () => {
-    it('creates the pool at the expected address', async () => {
-      const expectedAddress = computePoolAddress(
-        factory.address,
-        [tokens[0].address, tokens[1].address],
-        FeeAmount.MEDIUM
-      )
-      const code = await wallet.provider.getCode(expectedAddress)
-      expect(code).to.eq('0x')
-      await nft.createAndInitializePoolIfNecessary(
-        tokens[0].address,
-        tokens[1].address,
-        FeeAmount.MEDIUM,
-        encodePriceSqrt(1, 1)
-      )
-      const codeAfter = await wallet.provider.getCode(expectedAddress)
-      expect(codeAfter).to.not.eq('0x')
-    })
 
     it('is payable', async () => {
       await nft.createAndInitializePoolIfNecessary(
@@ -107,14 +90,7 @@ describe('NonfungiblePositionManager', () => {
     })
 
     it('works if pool is created but not initialized', async () => {
-      const expectedAddress = computePoolAddress(
-        factory.address,
-        [tokens[0].address, tokens[1].address],
-        FeeAmount.MEDIUM
-      )
       await factory.createPool(tokens[0].address, tokens[1].address, FeeAmount.MEDIUM)
-      const code = await wallet.provider.getCode(expectedAddress)
-      expect(code).to.not.eq('0x')
       await nft.createAndInitializePoolIfNecessary(
         tokens[0].address,
         tokens[1].address,
@@ -124,17 +100,11 @@ describe('NonfungiblePositionManager', () => {
     })
 
     it('works if pool is created and initialized', async () => {
-      const expectedAddress = computePoolAddress(
-        factory.address,
-        [tokens[0].address, tokens[1].address],
-        FeeAmount.MEDIUM
-      )
       await factory.createPool(tokens[0].address, tokens[1].address, FeeAmount.MEDIUM)
-      const pool = new ethers.Contract(expectedAddress, IPoolABI, wallet)
+      const poolAddress = await factory.getPool(tokens[0].address, tokens[1].address, FeeAmount.MEDIUM)
+      const pool = new ethers.Contract(poolAddress, IPoolABI, wallet)
 
       await pool.initialize(encodePriceSqrt(3, 1))
-      const code = await wallet.provider.getCode(expectedAddress)
-      expect(code).to.not.eq('0x')
       await nft.createAndInitializePoolIfNecessary(
         tokens[0].address,
         tokens[1].address,

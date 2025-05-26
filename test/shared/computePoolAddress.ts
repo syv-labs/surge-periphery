@@ -1,4 +1,4 @@
-import { bytecode } from '@syvlabs/surge-core/artifacts/contracts/Pool.sol/Pool.json'
+import { bytecode } from '../contracts/Pool.json'
 import { utils } from 'ethers'
 
 export const POOL_BYTECODE_HASH = utils.keccak256(bytecode)

@@ -110,7 +110,7 @@ library NFTDescriptor {
         return
             string(
                 abi.encodePacked(
-                    'This NFT represents a liquidity position',
+                    'This NFT represents a liquidity position ',
                     quoteTokenSymbol,
                     '-',
                     baseTokenSymbol,
@@ -157,7 +157,6 @@ library NFTDescriptor {
         return
             string(
                 abi.encodePacked(
-                    ' - ',
                     feeTier,
                     ' - ',
                     escapeQuotes(params.quoteTokenSymbol),

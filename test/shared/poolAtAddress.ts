@@ -1,4 +1,4 @@
-import { abi as POOL_ABI } from '@syvlabs/surge-core/artifacts/contracts/Pool.sol/Pool.json'
+import { abi as POOL_ABI } from '../contracts/Pool.json'
 import { Contract, Wallet } from 'ethers'
 import { IPool } from '../../typechain'
 
