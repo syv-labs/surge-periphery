@@ -2,32 +2,32 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import '@syvlabs/surge-core/contracts/libraries/LowGasSafeMath.sol';
-import './interfaces/IPair.sol';
-
-import '@openzeppelin/contracts-upgradeable/proxy/Initializable.sol';
+import '@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol';
+import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
 
 import './interfaces/INonfungiblePositionManager.sol';
 
 import './libraries/TransferHelper.sol';
 
-import './interfaces/IMigrator.sol';
+import './interfaces/IV3Migrator.sol';
 import './base/PeripheryImmutableState.sol';
 import './base/Multicall.sol';
 import './base/SelfPermit.sol';
 import './interfaces/external/IWETH9.sol';
 import './base/PoolInitializer.sol';
 
-/// @title Migrator
-contract Migrator is Initializable, IMigrator, PeripheryImmutableState, PoolInitializer, Multicall, SelfPermit {
+/// @title Uniswap V3 Migrator
+contract V3Migrator is IV3Migrator, PeripheryImmutableState, PoolInitializer, Multicall, SelfPermit {
     using LowGasSafeMath for uint256;
 
-    address public nonfungiblePositionManager;
+    address public immutable nonfungiblePositionManager;
 
-    function initialize(address _factory, address _WETH9, address _nonfungiblePositionManager) external initializer {
+    constructor(
+        address _factory,
+        address _WETH9,
+        address _nonfungiblePositionManager
+    ) PeripheryImmutableState(_factory, _WETH9) {
         nonfungiblePositionManager = _nonfungiblePositionManager;
-
-        __PeripheryImmutableState_init(_factory, _WETH9);
     }
 
     receive() external payable {
@@ -39,10 +39,10 @@ contract Migrator is Initializable, IMigrator, PeripheryImmutableState, PoolInit
         require(params.percentageToMigrate <= 100, 'Percentage too large');
 
         // burn v2 liquidity to this address
-        IPair(params.pair).transferFrom(msg.sender, params.pair, params.liquidityToMigrate);
-        (uint256 amount0V2, uint256 amount1V2) = IPair(params.pair).burn(address(this));
+        IUniswapV2Pair(params.pair).transferFrom(msg.sender, params.pair, params.liquidityToMigrate);
+        (uint256 amount0V2, uint256 amount1V2) = IUniswapV2Pair(params.pair).burn(address(this));
 
-        // calculate the amounts to migrate
+        // calculate the amounts to migrate to v3
         uint256 amount0V2ToMigrate = amount0V2.mul(params.percentageToMigrate) / 100;
         uint256 amount1V2ToMigrate = amount1V2.mul(params.percentageToMigrate) / 100;
 
@@ -50,22 +50,23 @@ contract Migrator is Initializable, IMigrator, PeripheryImmutableState, PoolInit
         TransferHelper.safeApprove(params.token0, nonfungiblePositionManager, amount0V2ToMigrate);
         TransferHelper.safeApprove(params.token1, nonfungiblePositionManager, amount1V2ToMigrate);
 
-        // mint position
-        (, , uint256 amount0V3, uint256 amount1V3) = INonfungiblePositionManager(nonfungiblePositionManager).mint(
-            INonfungiblePositionManager.MintParams({
-                token0: params.token0,
-                token1: params.token1,
-                fee: params.fee,
-                tickLower: params.tickLower,
-                tickUpper: params.tickUpper,
-                amount0Desired: amount0V2ToMigrate,
-                amount1Desired: amount1V2ToMigrate,
-                amount0Min: params.amount0Min,
-                amount1Min: params.amount1Min,
-                recipient: params.recipient,
-                deadline: params.deadline
-            })
-        );
+        // mint v3 position
+        (, , uint256 amount0V3, uint256 amount1V3) =
+            INonfungiblePositionManager(nonfungiblePositionManager).mint(
+                INonfungiblePositionManager.MintParams({
+                    token0: params.token0,
+                    token1: params.token1,
+                    fee: params.fee,
+                    tickLower: params.tickLower,
+                    tickUpper: params.tickUpper,
+                    amount0Desired: amount0V2ToMigrate,
+                    amount1Desired: amount1V2ToMigrate,
+                    amount0Min: params.amount0Min,
+                    amount1Min: params.amount1Min,
+                    recipient: params.recipient,
+                    deadline: params.deadline
+                })
+            );
 
         // if necessary, clear allowance and refund dust
         if (amount0V3 < amount0V2) {

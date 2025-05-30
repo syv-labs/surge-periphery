@@ -5,9 +5,9 @@ import {
   PositionValueTest,
   SwapRouter,
   MockTimeNonfungiblePositionManager,
-  IPool,
+  IUniswapV3Pool,
   TestERC20,
-  IFactory,
+  IUniswapV3Factory,
 } from '../typechain'
 import { FeeAmount, MaxUint128, TICK_SPACINGS } from './shared/constants'
 import { getMaxTick, getMinTick } from './shared/ticks'
@@ -20,7 +20,7 @@ import snapshotGasCost from './shared/snapshotGasCost'
 
 import { expect } from './shared/expect'
 
-import { abi as IPoolABI } from './contracts/Pool.json'
+import { abi as IUniswapV3PoolABI } from '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json'
 
 describe('PositionValue', async () => {
   const [...wallets] = waffle.provider.getWallets()
@@ -29,7 +29,7 @@ describe('PositionValue', async () => {
     tokens: [TestERC20, TestERC20, TestERC20]
     nft: MockTimeNonfungiblePositionManager
     router: SwapRouter
-    factory: IFactory
+    factory: IUniswapV3Factory
   }> = async (wallets, provider) => {
     const { nft, router, tokens, factory } = await completeFixture(wallets, provider)
     const positionValueFactory = await ethers.getContractFactory('PositionValueTest')
@@ -55,7 +55,7 @@ describe('PositionValue', async () => {
   let positionValue: PositionValueTest
   let nft: MockTimeNonfungiblePositionManager
   let router: SwapRouter
-  let factory: IFactory
+  let factory: IUniswapV3Factory
 
   let amountDesired: BigNumberish
 
@@ -73,8 +73,8 @@ describe('PositionValue', async () => {
       encodePriceSqrt(1, 1)
     )
 
-    const poolAddress = await factory.getPool(tokens[0].address, tokens[1].address, FeeAmount.MEDIUM)
-    pool = new ethers.Contract(poolAddress, IPoolABI, wallets[0])
+    const poolAddress = computePoolAddress(factory.address, [tokens[0].address, tokens[1].address], FeeAmount.MEDIUM)
+    pool = new ethers.Contract(poolAddress, IUniswapV3PoolABI, wallets[0])
   })
 
   describe('#total', () => {

@@ -1,19 +1,20 @@
 {
-  "name": "@syv-labs/surge-periphery",
-  "description": "🎚 Peripheral smart contracts",
+  "name": "@uniswap/v3-periphery",
+  "description": "🎚 Peripheral smart contracts for interacting with Uniswap V3",
   "license": "GPL-2.0-or-later",
   "publishConfig": {
     "access": "public"
   },
   "version": "1.4.4",
-  "homepage": "https://syv-labs.org",
+  "homepage": "https://uniswap.org",
   "keywords": [
-    "syv-labs",
-    "periphery"
+    "uniswap",
+    "periphery",
+    "v3"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/syv-labs/surge-periphery"
+    "url": "https://github.com/Uniswap/uniswap-v3-periphery"
   },
   "files": [
     "contracts/base",
@@ -29,9 +30,9 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "3.4.2-solc-0.7",
-    "@openzeppelin/contracts-upgradeable": "3.4.2-solc-0.7",
-    "@openzeppelin/hardhat-upgrades": "1.22.1",
-    "@syvlabs/surge-core": "https://github.com/syv-labs/surge-core",
+    "@uniswap/lib": "^4.0.1-alpha",
+    "@uniswap/v2-core": "^1.0.1",
+    "@uniswap/v3-core": "^1.0.0",
     "base64-sol": "1.0.1"
   },
   "devDependencies": {

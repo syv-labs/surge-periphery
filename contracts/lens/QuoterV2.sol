@@ -2,13 +2,11 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import '@syvlabs/surge-core/contracts/libraries/SafeCast.sol';
-import '@syvlabs/surge-core/contracts/libraries/TickMath.sol';
-import '@syvlabs/surge-core/contracts/libraries/TickBitmap.sol';
-import '@syvlabs/surge-core/contracts/interfaces/IPool.sol';
-import '@syvlabs/surge-core/contracts/interfaces/callback/ISwapCallback.sol';
-
-import '@openzeppelin/contracts-upgradeable/proxy/Initializable.sol';
+import '@uniswap/v3-core/contracts/libraries/SafeCast.sol';
+import '@uniswap/v3-core/contracts/libraries/TickMath.sol';
+import '@uniswap/v3-core/contracts/libraries/TickBitmap.sol';
+import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
+import '@uniswap/v3-core/contracts/interfaces/callback/IUniswapV3SwapCallback.sol';
 
 import '../interfaces/IQuoterV2.sol';
 import '../base/PeripheryImmutableState.sol';
@@ -21,33 +19,40 @@ import '../libraries/PoolTicksCounter.sol';
 /// @notice Allows getting the expected amount out or amount in for a given swap without executing the swap
 /// @dev These functions are not gas efficient and should _not_ be called on chain. Instead, optimistically execute
 /// the swap and check the amounts in the callback.
-contract QuoterV2 is Initializable, IQuoterV2, ISwapCallback, PeripheryImmutableState {
+contract QuoterV2 is IQuoterV2, IUniswapV3SwapCallback, PeripheryImmutableState {
     using Path for bytes;
     using SafeCast for uint256;
-    using PoolTicksCounter for IPool;
+    using PoolTicksCounter for IUniswapV3Pool;
 
     /// @dev Transient storage variable used to check a safety condition in exact output swaps.
     uint256 private amountOutCached;
 
-    function initialize(address _factory, address _WETH9) external initializer {
-        __PeripheryImmutableState_init(_factory, _WETH9);
+    constructor(address _factory, address _WETH9) PeripheryImmutableState(_factory, _WETH9) {}
+
+    function getPool(
+        address tokenA,
+        address tokenB,
+        uint24 fee
+    ) private view returns (IUniswapV3Pool) {
+        return IUniswapV3Pool(PoolAddress.computeAddress(factory, PoolAddress.getPoolKey(tokenA, tokenB, fee)));
     }
 
-    function getPool(address tokenA, address tokenB, uint24 fee) private view returns (IPool) {
-        return IPool(PoolAddress.computeAddress(factory, PoolAddress.getPoolKey(tokenA, tokenB, fee)));
-    }
-
-    /// @inheritdoc ISwapCallback
-    function swapCallback(int256 amount0Delta, int256 amount1Delta, bytes memory path) external view override {
+    /// @inheritdoc IUniswapV3SwapCallback
+    function uniswapV3SwapCallback(
+        int256 amount0Delta,
+        int256 amount1Delta,
+        bytes memory path
+    ) external view override {
         require(amount0Delta > 0 || amount1Delta > 0); // swaps entirely within 0-liquidity regions are not supported
         (address tokenIn, address tokenOut, uint24 fee) = path.decodeFirstPool();
         CallbackValidation.verifyCallback(factory, tokenIn, tokenOut, fee);
 
-        (bool isExactInput, uint256 amountToPay, uint256 amountReceived) = amount0Delta > 0
-            ? (tokenIn < tokenOut, uint256(amount0Delta), uint256(-amount1Delta))
-            : (tokenOut < tokenIn, uint256(amount1Delta), uint256(-amount0Delta));
+        (bool isExactInput, uint256 amountToPay, uint256 amountReceived) =
+            amount0Delta > 0
+                ? (tokenIn < tokenOut, uint256(amount0Delta), uint256(-amount1Delta))
+                : (tokenOut < tokenIn, uint256(amount1Delta), uint256(-amount0Delta));
 
-        IPool pool = getPool(tokenIn, tokenOut, fee);
+        IUniswapV3Pool pool = getPool(tokenIn, tokenOut, fee);
         (uint160 sqrtPriceX96After, int24 tickAfter, , , , , ) = pool.slot0();
 
         if (isExactInput) {
@@ -72,9 +77,15 @@ contract QuoterV2 is Initializable, IQuoterV2, ISwapCallback, PeripheryImmutable
     }
 
     /// @dev Parses a revert reason that should contain the numeric quote
-    function parseRevertReason(
-        bytes memory reason
-    ) private pure returns (uint256 amount, uint160 sqrtPriceX96After, int24 tickAfter) {
+    function parseRevertReason(bytes memory reason)
+        private
+        pure
+        returns (
+            uint256 amount,
+            uint160 sqrtPriceX96After,
+            int24 tickAfter
+        )
+    {
         if (reason.length != 96) {
             if (reason.length < 68) revert('Unexpected error');
             assembly {
@@ -87,9 +98,18 @@ contract QuoterV2 is Initializable, IQuoterV2, ISwapCallback, PeripheryImmutable
 
     function handleRevert(
         bytes memory reason,
-        IPool pool,
+        IUniswapV3Pool pool,
         uint256 gasEstimate
-    ) private view returns (uint256 amount, uint160 sqrtPriceX96After, uint32 initializedTicksCrossed, uint256) {
+    )
+        private
+        view
+        returns (
+            uint256 amount,
+            uint160 sqrtPriceX96After,
+            uint32 initializedTicksCrossed,
+            uint256
+        )
+    {
         int24 tickBefore;
         int24 tickAfter;
         (, tickBefore, , , , , ) = pool.slot0();
@@ -100,15 +120,18 @@ contract QuoterV2 is Initializable, IQuoterV2, ISwapCallback, PeripheryImmutable
         return (amount, sqrtPriceX96After, initializedTicksCrossed, gasEstimate);
     }
 
-    function quoteExactInputSingle(
-        QuoteExactInputSingleParams memory params
-    )
+    function quoteExactInputSingle(QuoteExactInputSingleParams memory params)
         public
         override
-        returns (uint256 amountOut, uint160 sqrtPriceX96After, uint32 initializedTicksCrossed, uint256 gasEstimate)
+        returns (
+            uint256 amountOut,
+            uint160 sqrtPriceX96After,
+            uint32 initializedTicksCrossed,
+            uint256 gasEstimate
+        )
     {
         bool zeroForOne = params.tokenIn < params.tokenOut;
-        IPool pool = getPool(params.tokenIn, params.tokenOut, params.fee);
+        IUniswapV3Pool pool = getPool(params.tokenIn, params.tokenOut, params.fee);
 
         uint256 gasBefore = gasleft();
         try
@@ -127,10 +150,7 @@ contract QuoterV2 is Initializable, IQuoterV2, ISwapCallback, PeripheryImmutable
         }
     }
 
-    function quoteExactInput(
-        bytes memory path,
-        uint256 amountIn
-    )
+    function quoteExactInput(bytes memory path, uint256 amountIn)
         public
         override
         returns (
@@ -148,12 +168,8 @@ contract QuoterV2 is Initializable, IQuoterV2, ISwapCallback, PeripheryImmutable
             (address tokenIn, address tokenOut, uint24 fee) = path.decodeFirstPool();
 
             // the outputs of prior swaps become the inputs to subsequent ones
-            (
-                uint256 _amountOut,
-                uint160 _sqrtPriceX96After,
-                uint32 _initializedTicksCrossed,
-                uint256 _gasEstimate
-            ) = quoteExactInputSingle(
+            (uint256 _amountOut, uint160 _sqrtPriceX96After, uint32 _initializedTicksCrossed, uint256 _gasEstimate) =
+                quoteExactInputSingle(
                     QuoteExactInputSingleParams({
                         tokenIn: tokenIn,
                         tokenOut: tokenOut,
@@ -178,15 +194,18 @@ contract QuoterV2 is Initializable, IQuoterV2, ISwapCallback, PeripheryImmutable
         }
     }
 
-    function quoteExactOutputSingle(
-        QuoteExactOutputSingleParams memory params
-    )
+    function quoteExactOutputSingle(QuoteExactOutputSingleParams memory params)
         public
         override
-        returns (uint256 amountIn, uint160 sqrtPriceX96After, uint32 initializedTicksCrossed, uint256 gasEstimate)
+        returns (
+            uint256 amountIn,
+            uint160 sqrtPriceX96After,
+            uint32 initializedTicksCrossed,
+            uint256 gasEstimate
+        )
     {
         bool zeroForOne = params.tokenIn < params.tokenOut;
-        IPool pool = getPool(params.tokenIn, params.tokenOut, params.fee);
+        IUniswapV3Pool pool = getPool(params.tokenIn, params.tokenOut, params.fee);
 
         // if no price limit has been specified, cache the output amount for comparison in the swap callback
         if (params.sqrtPriceLimitX96 == 0) amountOutCached = params.amount;
@@ -208,10 +227,7 @@ contract QuoterV2 is Initializable, IQuoterV2, ISwapCallback, PeripheryImmutable
         }
     }
 
-    function quoteExactOutput(
-        bytes memory path,
-        uint256 amountOut
-    )
+    function quoteExactOutput(bytes memory path, uint256 amountOut)
         public
         override
         returns (
@@ -229,12 +245,8 @@ contract QuoterV2 is Initializable, IQuoterV2, ISwapCallback, PeripheryImmutable
             (address tokenOut, address tokenIn, uint24 fee) = path.decodeFirstPool();
 
             // the inputs of prior swaps become the outputs of subsequent ones
-            (
-                uint256 _amountIn,
-                uint160 _sqrtPriceX96After,
-                uint32 _initializedTicksCrossed,
-                uint256 _gasEstimate
-            ) = quoteExactOutputSingle(
+            (uint256 _amountIn, uint160 _sqrtPriceX96After, uint32 _initializedTicksCrossed, uint256 _gasEstimate) =
+                quoteExactOutputSingle(
                     QuoteExactOutputSingleParams({
                         tokenIn: tokenIn,
                         tokenOut: tokenOut,

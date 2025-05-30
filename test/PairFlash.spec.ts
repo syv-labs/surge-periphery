@@ -1,14 +1,14 @@
-import { ethers, upgrades, waffle } from 'hardhat'
+import { ethers, waffle } from 'hardhat'
 import { BigNumber, constants, Contract, ContractTransaction } from 'ethers'
 import {
   IWETH9,
   MockTimeNonfungiblePositionManager,
   MockTimeSwapRouter,
   PairFlash,
-  IPool,
+  IUniswapV3Pool,
   TestERC20,
   TestERC20Metadata,
-  IFactory,
+  IUniswapV3Factory,
   NFTDescriptor,
   Quoter,
   SwapRouter,
@@ -31,7 +31,7 @@ describe('PairFlash test', () => {
   let nft: MockTimeNonfungiblePositionManager
   let token0: TestERC20
   let token1: TestERC20
-  let factory: IFactory
+  let factory: IUniswapV3Factory
   let quoter: Quoter
 
   async function createPool(tokenAddressA: string, tokenAddressB: string, fee: FeeAmount, price: BigNumber) {
@@ -66,7 +66,7 @@ describe('PairFlash test', () => {
     const flash = (await flashContractFactory.deploy(router.address, factory.address, weth9.address)) as PairFlash
 
     const quoterFactory = await ethers.getContractFactory('Quoter')
-    const quoter = (await upgrades.deployProxy(quoterFactory, [factory.address, weth9.address])) as Quoter
+    const quoter = (await quoterFactory.deploy(factory.address, weth9.address)) as Quoter
 
     return {
       token0,
@@ -115,9 +115,9 @@ describe('PairFlash test', () => {
         fee3: FeeAmount.HIGH,
       }
       // pool1 is the borrow pool
-      const pool1 = await factory.getPool(token0.address, token1.address, FeeAmount.MEDIUM)
-      const pool2 = await factory.getPool(token0.address, token1.address, FeeAmount.LOW)
-      const pool3 = await factory.getPool(token0.address, token1.address, FeeAmount.HIGH)
+      const pool1 = computePoolAddress(factory.address, [token0.address, token1.address], FeeAmount.MEDIUM)
+      const pool2 = computePoolAddress(factory.address, [token0.address, token1.address], FeeAmount.LOW)
+      const pool3 = computePoolAddress(factory.address, [token0.address, token1.address], FeeAmount.HIGH)
 
       const expectedAmountOut0 = await quoter.callStatic.quoteExactInputSingle(
         token1.address,

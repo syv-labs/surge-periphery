@@ -46,7 +46,7 @@ describe('CallbackValidation', () => {
     ;({ callbackValidation, tokens, factory } = await loadFixture(callbackValidationFixture))
   })
 
-  it('reverts when called from an address other than the associated Pool', async () => {
+  it('reverts when called from an address other than the associated UniswapV3Pool', async () => {
     expect(
       callbackValidation
         .connect(nonpairAddr)

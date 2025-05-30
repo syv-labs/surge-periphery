@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.5.0;
 
-import '@syvlabs/surge-core/contracts/libraries/FullMath.sol';
-import '@syvlabs/surge-core/contracts/libraries/UnsafeMath.sol';
-import '@syvlabs/surge-core/contracts/libraries/FixedPoint96.sol';
+import '@uniswap/v3-core/contracts/libraries/FullMath.sol';
+import '@uniswap/v3-core/contracts/libraries/UnsafeMath.sol';
+import '@uniswap/v3-core/contracts/libraries/FixedPoint96.sol';
 
 /// @title Functions based on Q64.96 sqrt price and liquidity
-/// @notice Exposes two functions from @syvlabs/surge-core SqrtPriceMath
+/// @notice Exposes two functions from @uniswap/v3-core SqrtPriceMath
 /// that use square root of price as a Q64.96 and liquidity to compute deltas
 library SqrtPriceMathPartial {
     /// @notice Gets the amount0 delta between two prices

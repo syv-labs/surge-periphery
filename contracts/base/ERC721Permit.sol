@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity =0.7.6;
 
-import '@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol';
+import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
 import '@openzeppelin/contracts/utils/Address.sol';
-
-import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
 
 import '../libraries/ChainId.sol';
 import '../interfaces/external/IERC1271.sol';
@@ -13,23 +11,22 @@ import './BlockTimestamp.sol';
 
 /// @title ERC721 with permit
 /// @notice Nonfungible tokens that support an approve via signature, i.e. permit
-abstract contract ERC721Permit is Initializable, BlockTimestamp, ERC721Upgradeable, IERC721Permit {
+abstract contract ERC721Permit is BlockTimestamp, ERC721, IERC721Permit {
     /// @dev Gets the current nonce for a token ID and then increments it, returning the original value
     function _getAndIncrementNonce(uint256 tokenId) internal virtual returns (uint256);
 
     /// @dev The hash of the name used in the permit signature verification
-    bytes32 private nameHash;
+    bytes32 private immutable nameHash;
 
     /// @dev The hash of the version string used in the permit signature verification
-    bytes32 private versionHash;
+    bytes32 private immutable versionHash;
 
     /// @notice Computes the nameHash and versionHash
-    function __Erc721Permint_init(
+    constructor(
         string memory name_,
         string memory symbol_,
         string memory version_
-    ) internal initializer {
-        __ERC721_init(name_, symbol_);
+    ) ERC721(name_, symbol_) {
         nameHash = keccak256(bytes(name_));
         versionHash = keccak256(bytes(version_));
     }
