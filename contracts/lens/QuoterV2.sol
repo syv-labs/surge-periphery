@@ -102,14 +102,13 @@ contract QuoterV2 is Initializable, IQuoterV2, ISwapCallback, PeripheryImmutable
 
     function quoteMultiplePaths(
         bytes[] memory paths,
-        uint256[] memory amountsIn
+        uint256 amountsIn
     ) external returns (
         uint256[] memory amountOut,
         uint160[][] memory sqrtPriceX96AfterList,
         uint32[][] memory initializedTicksCrossedList,
         uint256[] memory gasEstimate
     ) {
-        require(paths.length == amountsIn.length, "length mismatch");
         amountOut = new uint256[](paths.length);
         sqrtPriceX96AfterList = new uint160[][](paths.length);
         initializedTicksCrossedList = new uint32[][](paths.length);
@@ -121,7 +120,7 @@ contract QuoterV2 is Initializable, IQuoterV2, ISwapCallback, PeripheryImmutable
                 sqrtPriceX96AfterList[i],
                 initializedTicksCrossedList[i],
                 gasEstimate[i]
-            ) = quoteExactInput(paths[i], amountsIn[i]);
+            ) = quoteExactInput(paths[i], amountsIn);
         }
     }
 
