@@ -549,5 +549,213 @@ describe('QuoterV2', function () {
         expect(sqrtPriceX96After).to.eq('80016521857016594389520272648')
       })
     })
+
+    describe.only('#quoteMultiplePaths', () => {
+      it('0 -> 2 cross 2 tick', async () => {
+        const {
+          amountOut,
+          sqrtPriceX96AfterList,
+          initializedTicksCrossedList,
+          gasEstimate,
+        } = await quoter.callStatic.quoteMultiplePaths(
+          [encodePath([tokens[0].address, tokens[2].address], [FeeAmount.MEDIUM])],
+          10000
+        )
+
+        expect(sqrtPriceX96AfterList.length).to.eq(1)
+        expect(sqrtPriceX96AfterList[0][0]).to.eq('78461846509168490764501028180')
+        expect(initializedTicksCrossedList[0][0]).to.eq(2)
+        expect(amountOut[0]).to.eq(9871)
+      })
+
+      it('0 -> 2 cross 2 tick where after is initialized', async () => {
+        // The swap amount is set such that the active tick after the swap is -120.
+        // -120 is an initialized tick for this pool. We check that we don't count it.
+        const {
+          amountOut,
+          sqrtPriceX96AfterList,
+          initializedTicksCrossedList,
+          gasEstimate,
+        } = await quoter.callStatic.quoteMultiplePaths(
+          [encodePath([tokens[0].address, tokens[2].address], [FeeAmount.MEDIUM])],
+          6200
+        )
+
+        expect(sqrtPriceX96AfterList.length).to.eq(1)
+        expect(sqrtPriceX96AfterList[0][0]).to.eq('78757224507315167622282810783')
+        expect(initializedTicksCrossedList.length).to.eq(1)
+        expect(initializedTicksCrossedList[0][0]).to.eq(1)
+        expect(amountOut[0]).to.eq(6143)
+      })
+
+      it('0 -> 2 cross 1 tick', async () => {
+        const {
+          amountOut,
+          sqrtPriceX96AfterList,
+          initializedTicksCrossedList,
+          gasEstimate,
+        } = await quoter.callStatic.quoteMultiplePaths(
+          [encodePath([tokens[0].address, tokens[2].address], [FeeAmount.MEDIUM])],
+          4000
+        )
+
+        expect(initializedTicksCrossedList[0][0]).to.eq(1)
+        expect(sqrtPriceX96AfterList.length).to.eq(1)
+        expect(sqrtPriceX96AfterList[0][0]).to.eq('78926452400586371254602774705')
+        expect(amountOut[0]).to.eq(3971)
+      })
+
+      it('0 -> 2 cross 0 tick, starting tick not initialized', async () => {
+        // Tick before 0, tick after -1.
+        const {
+          amountOut,
+          sqrtPriceX96AfterList,
+          initializedTicksCrossedList,
+          gasEstimate,
+        } = await quoter.callStatic.quoteMultiplePaths(
+          [encodePath([tokens[0].address, tokens[2].address], [FeeAmount.MEDIUM])],
+          10
+        )
+
+        expect(initializedTicksCrossedList[0][0]).to.eq(0)
+        expect(sqrtPriceX96AfterList.length).to.eq(1)
+        expect(sqrtPriceX96AfterList[0][0]).to.eq('79227483487511329217250071027')
+        expect(amountOut[0]).to.eq(8)
+      })
+
+      it('0 -> 2 cross 0 tick, starting tick initialized', async () => {
+        // Tick before 0, tick after -1. Tick 0 initialized.
+        await createPoolWithZeroTickInitialized(nft, wallet, tokens[0].address, tokens[2].address)
+
+        const {
+          amountOut,
+          sqrtPriceX96AfterList,
+          initializedTicksCrossedList,
+          gasEstimate,
+        } = await quoter.callStatic.quoteMultiplePaths(
+          [encodePath([tokens[0].address, tokens[2].address], [FeeAmount.MEDIUM])],
+          10
+        )
+
+        expect(initializedTicksCrossedList[0][0]).to.eq(1)
+        expect(sqrtPriceX96AfterList.length).to.eq(1)
+        expect(sqrtPriceX96AfterList[0][0]).to.eq('79227817515327498931091950511')
+        expect(amountOut[0]).to.eq(8)
+      })
+
+      it('2 -> 0 cross 2', async () => {
+        const {
+          amountOut,
+          sqrtPriceX96AfterList,
+          initializedTicksCrossedList,
+          gasEstimate,
+        } = await quoter.callStatic.quoteMultiplePaths(
+          [encodePath([tokens[2].address, tokens[0].address], [FeeAmount.MEDIUM])],
+          10000
+        )
+
+        expect(initializedTicksCrossedList[0][0]).to.eq(2)
+        expect(sqrtPriceX96AfterList.length).to.eq(1)
+        expect(sqrtPriceX96AfterList[0][0]).to.eq('80001962924147897865541384515')
+        expect(initializedTicksCrossedList.length).to.eq(1)
+        expect(amountOut[0]).to.eq(9871)
+      })
+
+      it('2 -> 0 cross 2 where tick after is initialized', async () => {
+        // The swap amount is set such that the active tick after the swap is 120.
+        // 120 is an initialized tick for this pool. We check we don't count it.
+        const {
+          amountOut,
+          sqrtPriceX96AfterList,
+          initializedTicksCrossedList,
+          gasEstimate,
+        } = await quoter.callStatic.quoteMultiplePaths(
+          [encodePath([tokens[2].address, tokens[0].address], [FeeAmount.MEDIUM])],
+          6250
+        )
+
+        expect(initializedTicksCrossedList[0][0]).to.eq(2)
+        expect(sqrtPriceX96AfterList.length).to.eq(1)
+        expect(sqrtPriceX96AfterList[0][0]).to.eq('79705728824507063507279123685')
+        expect(initializedTicksCrossedList.length).to.eq(1)
+        expect(amountOut[0]).to.eq(6190)
+      })
+
+      it('2 -> 0 cross 0 tick, starting tick initialized', async () => {
+        // Tick 0 initialized. Tick after = 1
+        await createPoolWithZeroTickInitialized(nft, wallet, tokens[0].address, tokens[2].address)
+
+        const {
+          amountOut,
+          sqrtPriceX96AfterList,
+          initializedTicksCrossedList,
+          gasEstimate,
+        } = await quoter.callStatic.quoteMultiplePaths(
+          [encodePath([tokens[2].address, tokens[0].address], [FeeAmount.MEDIUM])],
+          200
+        )
+
+        expect(initializedTicksCrossedList[0][0]).to.eq(0)
+        expect(sqrtPriceX96AfterList.length).to.eq(1)
+        expect(sqrtPriceX96AfterList[0][0]).to.eq('79235729830182478001034429156')
+        expect(initializedTicksCrossedList.length).to.eq(1)
+        expect(amountOut[0]).to.eq(198)
+      })
+
+      it('2 -> 0 cross 0 tick, starting tick not initialized', async () => {
+        // Tick 0 initialized. Tick after = 1
+        const {
+          amountOut,
+          sqrtPriceX96AfterList,
+          initializedTicksCrossedList,
+          gasEstimate,
+        } = await quoter.callStatic.quoteMultiplePaths(
+          [encodePath([tokens[2].address, tokens[0].address], [FeeAmount.MEDIUM])],
+          103
+        )
+
+        expect(initializedTicksCrossedList[0][0]).to.eq(0)
+        expect(sqrtPriceX96AfterList.length).to.eq(1)
+        expect(sqrtPriceX96AfterList[0][0]).to.eq('79235858216754624215638319723')
+        expect(initializedTicksCrossedList.length).to.eq(1)
+        expect(amountOut[0]).to.eq(101)
+      })
+
+      it('2 -> 1', async () => {
+        const {
+          amountOut,
+          sqrtPriceX96AfterList,
+          initializedTicksCrossedList,
+          gasEstimate,
+        } = await quoter.callStatic.quoteMultiplePaths(
+          [encodePath([tokens[2].address, tokens[1].address], [FeeAmount.MEDIUM])],
+          10000
+        )
+
+        expect(sqrtPriceX96AfterList.length).to.eq(1)
+        expect(sqrtPriceX96AfterList[0][0]).to.eq('80018067294531553039351583520')
+        expect(initializedTicksCrossedList[0][0]).to.eq(0)
+        expect(amountOut[0]).to.eq(9871)
+      })
+
+      it('0 -> 2 -> 1', async () => {
+        const {
+          amountOut,
+          sqrtPriceX96AfterList,
+          initializedTicksCrossedList,
+          gasEstimate,
+        } = await quoter.callStatic.quoteMultiplePaths(
+          [encodePath([tokens[0].address, tokens[2].address, tokens[1].address], [FeeAmount.MEDIUM, FeeAmount.MEDIUM])],
+          10000
+        )
+
+        expect(sqrtPriceX96AfterList[0].length).to.eq(2)
+        expect(sqrtPriceX96AfterList[0][0]).to.eq('78461846509168490764501028180')
+        expect(sqrtPriceX96AfterList[0][1]).to.eq('80007846861567212939802016351')
+        expect(initializedTicksCrossedList[0][0]).to.eq(2)
+        expect(initializedTicksCrossedList[0][1]).to.eq(0)
+        expect(amountOut[0]).to.eq(9745)
+      })
+    })
   })
 })
