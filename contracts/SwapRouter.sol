@@ -17,7 +17,6 @@ import './base/SelfPermit.sol';
 import './libraries/Path.sol';
 import './libraries/PoolAddress.sol';
 import './libraries/CallbackValidation.sol';
-import './interfaces/external/IWETH9.sol';
 
 /// @title  Swap Router
 /// @notice Router for stateless execution of swaps
@@ -40,8 +39,8 @@ contract SwapRouter is
     /// @dev Transient storage variable used for returning the computed amount in for an exact output swap.
     uint256 private amountInCached = DEFAULT_AMOUNT_IN_CACHED;
 
-    function initialize(address _factory, address _WETH9) public initializer {
-        __PeripheryImmutableState_init(_factory, _WETH9);
+    function initialize(address _factory) public initializer {
+        __PeripheryImmutableState_init(_factory);
     }
 
     /// @dev Returns the pool for the given token pair and fee. The pool contract may or may not exist.

@@ -15,7 +15,6 @@ import './interfaces/IMigrator.sol';
 import './base/PeripheryImmutableState.sol';
 import './base/Multicall.sol';
 import './base/SelfPermit.sol';
-import './interfaces/external/IWETH9.sol';
 import './base/PoolInitializer.sol';
 
 /// @title Migrator
@@ -24,14 +23,10 @@ contract Migrator is Initializable, IMigrator, PeripheryImmutableState, PoolInit
 
     address public nonfungiblePositionManager;
 
-    function initialize(address _factory, address _WETH9, address _nonfungiblePositionManager) external initializer {
+    function initialize(address _factory, address _nonfungiblePositionManager) external initializer {
         nonfungiblePositionManager = _nonfungiblePositionManager;
 
-        __PeripheryImmutableState_init(_factory, _WETH9);
-    }
-
-    receive() external payable {
-        require(msg.sender == WETH9, 'Not WETH9');
+        __PeripheryImmutableState_init(_factory);
     }
 
     function migrate(MigrateParams calldata params) external override {
@@ -74,12 +69,7 @@ contract Migrator is Initializable, IMigrator, PeripheryImmutableState, PoolInit
             }
 
             uint256 refund0 = amount0V2 - amount0V3;
-            if (params.refundAsETH && params.token0 == WETH9) {
-                IWETH9(WETH9).withdraw(refund0);
-                TransferHelper.safeTransferETH(msg.sender, refund0);
-            } else {
-                TransferHelper.safeTransfer(params.token0, msg.sender, refund0);
-            }
+            TransferHelper.safeTransfer(params.token0, msg.sender, refund0);
         }
         if (amount1V3 < amount1V2) {
             if (amount1V3 < amount1V2ToMigrate) {
@@ -87,12 +77,7 @@ contract Migrator is Initializable, IMigrator, PeripheryImmutableState, PoolInit
             }
 
             uint256 refund1 = amount1V2 - amount1V3;
-            if (params.refundAsETH && params.token1 == WETH9) {
-                IWETH9(WETH9).withdraw(refund1);
-                TransferHelper.safeTransferETH(msg.sender, refund1);
-            } else {
-                TransferHelper.safeTransfer(params.token1, msg.sender, refund1);
-            }
+            TransferHelper.safeTransfer(params.token1, msg.sender, refund1);
         }
     }
 }

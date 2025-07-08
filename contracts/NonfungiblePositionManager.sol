@@ -70,11 +70,11 @@ contract NonfungiblePositionManager is
     /// @dev The address of the token descriptor contract, which handles generating token URIs for position tokens
     address private _tokenDescriptor;
 
-    function initialize(address _factory, address _WETH9, address _tokenDescriptor_) public initializer {
+    function initialize(address _factory, address _tokenDescriptor_) public initializer {
         _tokenDescriptor = _tokenDescriptor_;
 
         __Erc721Permint_init(' Positions NFT-V1', 'UNI-POS', '1');
-        __PeripheryImmutableState_init(_factory, _WETH9);
+        __PeripheryImmutableState_init(_factory);
     }
 
     /// @inheritdoc INonfungiblePositionManager

@@ -20,8 +20,8 @@ contract PairFlash is IFlashCallback, PeripheryPayments {
 
     ISwapRouter public immutable swapRouter;
 
-    constructor(ISwapRouter _swapRouter, address _factory, address _WETH9) {
-        __PeripheryImmutableState_init(_factory, _WETH9);
+    constructor(ISwapRouter _swapRouter, address _factory) {
+        __PeripheryImmutableState_init(_factory);
         swapRouter = _swapRouter;
     }
 

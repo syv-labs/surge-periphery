@@ -29,8 +29,8 @@ contract QuoterV2 is Initializable, IQuoterV2, ISwapCallback, PeripheryImmutable
     /// @dev Transient storage variable used to check a safety condition in exact output swaps.
     uint256 private amountOutCached;
 
-    function initialize(address _factory, address _WETH9) external initializer {
-        __PeripheryImmutableState_init(_factory, _WETH9);
+    function initialize(address _factory) external initializer {
+        __PeripheryImmutableState_init(_factory);
     }
 
     function getPool(address tokenA, address tokenB, uint24 fee) private view returns (IPool) {
