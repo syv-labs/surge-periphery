@@ -63,15 +63,17 @@ contract NonfungiblePositionManager is
     mapping(uint256 => Position) private _positions;
 
     /// @dev The ID of the next token that will be minted. Skips 0
-    uint176 private _nextId = 1;
+    uint176 private _nextId;
     /// @dev The ID of the next pool that is used for the first time. Skips 0
-    uint80 private _nextPoolId = 1;
+    uint80 private _nextPoolId;
 
     /// @dev The address of the token descriptor contract, which handles generating token URIs for position tokens
     address private _tokenDescriptor;
 
     function initialize(address _factory, address _WETH9, address _tokenDescriptor_) public initializer {
         _tokenDescriptor = _tokenDescriptor_;
+        _nextId = 1;
+        _nextPoolId = 1;
 
         __Erc721Permint_init(' Positions NFT-V1', 'UNI-POS', '1');
         __PeripheryImmutableState_init(_factory, _WETH9);
