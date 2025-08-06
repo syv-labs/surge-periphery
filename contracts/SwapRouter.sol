@@ -38,9 +38,11 @@ contract SwapRouter is
     uint256 private constant DEFAULT_AMOUNT_IN_CACHED = type(uint256).max;
 
     /// @dev Transient storage variable used for returning the computed amount in for an exact output swap.
-    uint256 private amountInCached = DEFAULT_AMOUNT_IN_CACHED;
+    uint256 private amountInCached;
 
     function initialize(address _factory, address _WETH9) public initializer {
+        amountInCached = DEFAULT_AMOUNT_IN_CACHED;
+
         __PeripheryImmutableState_init(_factory, _WETH9);
     }
 
