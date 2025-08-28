@@ -31,6 +31,7 @@ library TransferHelper {
         address to,
         uint256 value
     ) internal {
+        uint a = IERC20(token).balanceOf(address(this));
         (bool success, bytes memory data) = token.call(abi.encodeWithSelector(IERC20.transfer.selector, to, value));
         require(success && (data.length == 0 || abi.decode(data, (bool))), 'ST');
     }
