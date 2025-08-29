@@ -10,7 +10,7 @@ import { expect } from './shared/expect'
 import { encodePath } from './shared/path'
 import { getMaxTick, getMinTick } from './shared/ticks'
 
-describe.only('SwapRouterNativePayment', function () {
+describe('SwapRouterNativePayment', function () {
   this.timeout(40000)
   let wallet: Wallet
   let trader: Wallet
@@ -89,10 +89,6 @@ describe.only('SwapRouterNativePayment', function () {
     }
   })
 
-  // it('bytecode size', async () => {
-  //   expect(((await router.provider.getCode(router.address)).length - 2) / 2).to.matchSnapshot()
-  // })
-
   describe('swaps', () => {
     const liquidity = 1000000
     async function createPool(tokenAddressA: string, tokenAddressB: string) {
@@ -123,11 +119,6 @@ describe.only('SwapRouterNativePayment', function () {
       return nft.mint(liquidityParams)
     }
 
-    beforeEach('create 0-1 and 1-2 pools', async () => {
-      await createPool(tokens[0].address, tokens[1].address)
-      await createPool(tokens[1].address, tokens[2].address)
-    })
-
     describe('#exactInput', () => {
       async function exactInput(
         tokens: string[],
@@ -146,17 +137,17 @@ describe.only('SwapRouterNativePayment', function () {
         
         const data = [router.interface.encodeFunctionData('exactInput', [params])]
 
-        // ensure that the swap fails if the limit is any tighter
-        // params.amountOutMinimum += 1
-        // await expect(router.connect(trader).exactInput(params, { value })).to.be.revertedWith('Too little received')
-        // params.amountOutMinimum -= 1
+        /// ensure that the swap fails if the limit is any tighter
+        params.amountOutMinimum += 1
+        await expect(router.connect(trader).exactInput(params, { value })).to.be.revertedWith('Too little received')
+        params.amountOutMinimum -= 1
 
         // optimized for the gas test
         return router.connect(trader).exactInput(params, { value })
       }
 
       describe('single-pool', () => {
-        it.only('native -> 2', async () => {
+        it('native -> 2', async () => {
           await tokens[3].approve(nft.address,"1000000")
           await createPool(tokens[2].address,tokens[3].address);
 
@@ -172,28 +163,75 @@ describe.only('SwapRouterNativePayment', function () {
          expect(traderAfter.token2).to.be.eq(traderBefore.token2.add(1))
 
         })
-      })
 
-      describe('multi-pool', () => {
-        it('1 -> 2 -> native', async () => {
+        it('1 -> native', async () => {
           await tokens[3].approve(nft.address,"1000000")
-          await createPool(tokens[2].address,tokens[3].address);
+          await createPool(tokens[1].address,tokens[3].address);
+
           const traderBefore = await getBalances(trader.address)
           
-          await exactInput(
-            [tokens[1].address,tokens[2].address,tokens[3].address],
-            5,
-            1
-          )
+          await exactInput([tokens[1].address, tokens[3].address])
 
           const traderAfter = await getBalances(trader.address)
 
-          expect(traderAfter.token1).to.be.eq(traderBefore.token1.sub(5))
+         expect(traderAfter.token1).to.be.eq(traderBefore.token1.sub(3))
+         expect(traderAfter.token3).to.be.eq(traderBefore.token3.add(1))
+
+        })
+      })
+
+      describe('multi-pool', () => {
+        it('native -> 0 -> 1', async () => {
+          await tokens[3].approve(nft.address,"1000000")
+          await createPool(tokens[3].address,tokens[0].address);
+          await createPool(tokens[1].address,tokens[0].address);
+
+          const traderBefore = await getBalances(trader.address)
+
+          await tokens[3].connect(trader).transfer(router.address,"5")
+          
+          await exactInput([tokens[3].address,tokens[0].address,tokens[1].address],5,1)
+
+          const traderAfter = await getBalances(trader.address)
+
+          expect(traderAfter.token3).to.be.eq(traderBefore.token3.sub(5))
+          expect(traderAfter.token1).to.be.eq(traderBefore.token1.add(1))
+        })
+
+        it('0 -> 1 -> native', async () => {
+          await tokens[3].approve(nft.address,"1000000")
+          await createPool(tokens[3].address,tokens[1].address);
+          await createPool(tokens[1].address,tokens[0].address);
+
+          const traderBefore = await getBalances(trader.address)
+          
+          await exactInput([tokens[0].address,tokens[1].address,tokens[3].address],5,1)
+
+          const traderAfter = await getBalances(trader.address)
+
+          expect(traderAfter.token0).to.be.eq(traderBefore.token0.sub(5))
           expect(traderAfter.token3).to.be.eq(traderBefore.token3.add(1))
         })
 
-      })
+        it('0 -> native -> 1', async () => {
+          await tokens[3].approve(nft.address,"1000000")
+          await createPool(tokens[3].address,tokens[1].address);
+          await tokens[3].approve(nft.address,"1000000")
+          await createPool(tokens[3].address,tokens[0].address);
 
+          const traderBefore = await getBalances(trader.address)
+
+          await tokens[3].connect(trader).transfer(router.address,"5")
+          
+          await exactInput([tokens[0].address,tokens[3].address,tokens[1].address],5,1)
+
+          const traderAfter = await getBalances(trader.address)
+
+          expect(traderAfter.token0).to.be.eq(traderBefore.token0.sub(5))
+          expect(traderAfter.token1).to.be.eq(traderBefore.token1.add(1))
+        })
+
+      })
 
     })
 
@@ -234,23 +272,27 @@ describe.only('SwapRouterNativePayment', function () {
       }
 
       it('0 -> native', async () => { 
-        await tokens[3].approve(nft.address,"1000000000");
+        await tokens[3].approve(nft.address,"10000000000000");
         await createPool(tokens[0].address,tokens[3].address);
         const pool = await factory.getPool(tokens[0].address, tokens[3].address, FeeAmount.MEDIUM)
 
         // get balances before
+        const poolBefore = await getBalances(pool)
         const traderBefore = await getBalances(trader.address)
 
         await exactInputSingle(tokens[0].address, tokens[3].address)
 
         // get balances after
+        const poolAfter = await getBalances(pool)
         const traderAfter = await getBalances(trader.address)
 
         expect(traderAfter.token0).to.be.eq(traderBefore.token0.sub(3))
         expect(traderAfter.token3).to.be.eq(traderBefore.token3.add(1))
+        expect(poolAfter.token3).to.be.eq(poolBefore.token3.sub(1))
+        expect(poolAfter.token0).to.be.eq(poolBefore.token0.add(3))
       })
 
-      it('1 -> native', async () => { 
+      it('native -> 1', async () => { 
         await tokens[3].approve(nft.address,"10000000000000");
         await createPool(tokens[1].address,tokens[3].address)
         const pool = await factory.getPool(tokens[1].address, tokens[3].address, FeeAmount.MEDIUM)
@@ -259,16 +301,18 @@ describe.only('SwapRouterNativePayment', function () {
         const poolBefore = await getBalances(pool)
         const traderBefore = await getBalances(trader.address)
 
-        await exactInputSingle(tokens[1].address, tokens[3].address)
+        await tokens[3].connect(trader).transfer(router.address,"3")
+
+        await exactInputSingle(tokens[3].address, tokens[1].address)
 
         // get balances after
         const poolAfter = await getBalances(pool)
         const traderAfter = await getBalances(trader.address)
 
-        expect(traderAfter.token3).to.be.eq(traderBefore.token3.add(1))
-        expect(traderAfter.token1).to.be.eq(traderBefore.token1.sub(3))
-        expect(poolAfter.token3).to.be.eq(poolBefore.token3.sub(1))
-        expect(poolAfter.token1).to.be.eq(poolBefore.token1.add(3))
+        expect(traderAfter.token1).to.be.eq(traderBefore.token1.add(1))
+        expect(traderAfter.token3).to.be.eq(traderBefore.token3.sub(3))
+        expect(poolAfter.token1).to.be.eq(poolBefore.token1.sub(1))
+        expect(poolAfter.token3).to.be.eq(poolBefore.token3.add(3))
       })
     })
 
@@ -279,7 +323,7 @@ describe.only('SwapRouterNativePayment', function () {
         amountInMaximum: number = 3
       ): Promise<ContractTransaction> {
 
-        const value = amountOut
+        const value = amountInMaximum
 
         const params = {
           path: encodePath(tokens.slice().reverse(), new Array(tokens.length - 1).fill(FeeAmount.MEDIUM)),
@@ -322,16 +366,40 @@ describe.only('SwapRouterNativePayment', function () {
           expect(poolAfter.token3).to.be.eq(poolBefore.token3.sub(1))
         })
 
+        it('native -> 1', async () => {
+          await tokens[3].approve(nft.address,"100000000000");
+          await createPool(tokens[3].address, tokens[1].address);
+          const pool = await factory.getPool(tokens[3].address, tokens[1].address, FeeAmount.MEDIUM)
+
+          // get balances before
+          const poolBefore = await getBalances(pool)
+          const traderBefore = await getBalances(trader.address)
+
+          await tokens[3].connect(trader).transfer(router.address,"3")
+
+          await exactOutput([tokens[3].address,tokens[1].address])
+
+          // get balances after
+          const poolAfter = await getBalances(pool)
+          const traderAfter = await getBalances(trader.address)
+
+          expect(traderAfter.token3).to.be.eq(traderBefore.token3.sub(3))
+          expect(traderAfter.token1).to.be.eq(traderBefore.token1.add(1))
+          expect(poolAfter.token3).to.be.eq(poolBefore.token3.add(3))
+          expect(poolAfter.token1).to.be.eq(poolBefore.token1.sub(1))
+        })
+
       })
 
       describe('multi-pool', () => {
         it('1 -> 2 -> native', async () => {
           await tokens[3].approve(nft.address,"10000000000000");
           await createPool(tokens[2].address,tokens[3].address);
+          await createPool(tokens[2].address,tokens[1].address);
           const traderBefore = await getBalances(trader.address)
 
           await exactOutput(
-            tokens.slice(1, 4).map((token) => token.address),
+            [tokens[1].address,tokens[2].address,tokens[3].address],
             1,
             5
           )
@@ -342,10 +410,49 @@ describe.only('SwapRouterNativePayment', function () {
           expect(traderAfter.token3).to.be.eq(traderBefore.token3.add(1))
         })
 
+        it('native -> 1 -> 2', async () => {
+          await tokens[3].approve(nft.address,"10000000000000");
+          await createPool(tokens[1].address,tokens[3].address);
+          await createPool(tokens[2].address,tokens[1].address);
+          const traderBefore = await getBalances(trader.address)
+
+          await tokens[3].connect(trader).transfer(router.address,"5")
+
+          await exactOutput(
+            [tokens[3].address,tokens[1].address,tokens[2].address],
+            1,
+            5
+          )
+
+          const traderAfter = await getBalances(trader.address)
+
+          expect(traderAfter.token3).to.be.eq(traderBefore.token3.sub(5))
+          expect(traderAfter.token2).to.be.eq(traderBefore.token2.add(1))
+        })
+
+        it('1 -> native -> 2', async () => {
+          await tokens[3].approve(nft.address,"10000000000000");
+          await createPool(tokens[1].address,tokens[3].address);
+          await createPool(tokens[3].address,tokens[2].address);
+          const traderBefore = await getBalances(trader.address)
+
+          await tokens[3].connect(trader).transfer(router.address,"5")
+
+          await exactOutput(
+            [tokens[1].address,tokens[3].address,tokens[2].address],
+            1,
+            5
+          )
+
+          const traderAfter = await getBalances(trader.address)
+
+          expect(traderAfter.token1).to.be.eq(traderBefore.token1.sub(5))
+          expect(traderAfter.token2).to.be.eq(traderBefore.token2.add(1))
+        })
+
       })
     })
       
-
     describe('#exactOutputSingle', () => {
       async function exactOutputSingle(
         tokenIn: string,
@@ -355,7 +462,7 @@ describe.only('SwapRouterNativePayment', function () {
         sqrtPriceLimitX96?: BigNumber
       ): Promise<ContractTransaction> {
 
-        const value = amountOut
+        const value = amountInMaximum
 
         const params = {
           tokenIn,
@@ -404,7 +511,7 @@ describe.only('SwapRouterNativePayment', function () {
         expect(poolAfter.token3).to.be.eq(poolBefore.token3.sub(1))
       })
 
-      it('1 -> native', async () => {
+      it('native -> 1', async () => {
         await tokens[3].approve(nft.address,"1000000000000000000");
         await createPool(tokens[1].address,tokens[3].address);
         const pool = await factory.getPool(tokens[1].address, tokens[3].address, FeeAmount.MEDIUM)
@@ -413,16 +520,18 @@ describe.only('SwapRouterNativePayment', function () {
         const poolBefore = await getBalances(pool)
         const traderBefore = await getBalances(trader.address)
 
-        await exactOutputSingle(tokens[1].address, tokens[3].address)
+        await tokens[3].connect(trader).transfer(router.address,"3")
+
+        await exactOutputSingle(tokens[3].address, tokens[1].address)
 
         // get balances after
         const poolAfter = await getBalances(pool)
         const traderAfter = await getBalances(trader.address)
 
-        expect(traderAfter.token3).to.be.eq(traderBefore.token3.add(1))
-        expect(traderAfter.token1).to.be.eq(traderBefore.token1.sub(3))
-        expect(poolAfter.token3).to.be.eq(poolBefore.token3.sub(1))
-        expect(poolAfter.token1).to.be.eq(poolBefore.token1.add(3))
+        expect(traderAfter.token1).to.be.eq(traderBefore.token1.add(1))
+        expect(traderAfter.token3).to.be.eq(traderBefore.token3.sub(3))
+        expect(poolAfter.token1).to.be.eq(poolBefore.token1.sub(1))
+        expect(poolAfter.token3).to.be.eq(poolBefore.token3.add(3))
       })
 
     })

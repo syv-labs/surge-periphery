@@ -19,7 +19,6 @@ import './libraries/PoolAddress.sol';
 import './libraries/CallbackValidation.sol';
 import './interfaces/external/IWETH9.sol';
 
-
 /// @title  Swap Router
 /// @notice Router for stateless execution of swaps
 contract SwapRouter is
@@ -86,7 +85,7 @@ contract SwapRouter is
                 }
             }
             else if(!data.path.hasMultiplePools()){ 
-                if(tokenOut == nativeTokenAddress){
+                if(tokenOut == nativeTokenAddress){ 
                     require(data.value >= amountToPay, "Not Enough Sent");
                     payer = address(this);
                 }
@@ -94,11 +93,10 @@ contract SwapRouter is
         }
         
         if (isExactInput) { 
-        uint b = IERC20(tokenIn).balanceOf(address(this));
             pay(tokenIn, payer, msg.sender, amountToPay);
         } else {
             // either initiate the next swap or pay
-            if (data.path.hasMultiplePools()) { 
+            if (data.path.hasMultiplePools()) {
                 data.path = data.path.skipToken();
                 exactOutputInternal(amountToPay, msg.sender, 0, data);
             } else { 
@@ -137,7 +135,6 @@ contract SwapRouter is
     function exactInputSingle(
         ExactInputSingleParams calldata params
     ) external payable override checkDeadline(params.deadline) returns (uint256 amountOut) {
-        uint a = IERC20(params.tokenOut).balanceOf(address(this));
         amountOut = exactInputInternal(
             params.amountIn,
             params.recipient,
@@ -151,11 +148,10 @@ contract SwapRouter is
     function exactInput(
         ExactInputParams memory params
     ) external payable override checkDeadline(params.deadline) returns (uint256 amountOut) {
-        address payer = msg.sender; // msg.sender pays for the first hop
+        address payer = msg.sender; // msg.sender pays for the first hop 
 
         while (true) { 
             bool hasMultiplePools = params.path.hasMultiplePools();
-
             // the outputs of prior swaps become the inputs to subsequent ones
             params.amountIn = exactInputInternal(
                 params.amountIn,
@@ -176,7 +172,7 @@ contract SwapRouter is
                 amountOut = params.amountIn;
                 break;
             }
-        }
+        } 
         require(amountOut >= params.amountOutMinimum, 'Too little received');
     }
 
