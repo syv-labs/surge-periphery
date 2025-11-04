@@ -62,6 +62,10 @@
   },
   "scripts": {
     "compile": "hardhat compile",
-    "test": "hardhat test"
+    "test": "hardhat test",
+    "build": "hardhat clean && hardhat compile",
+    "clean:artifacts": "find artifacts -name '*.dbg.json' -type f -delete && find artifacts -type d -name 'build-info' -exec rm -rf {} + 2>/dev/null || true",
+    "release": "npm run build && npm run clean:artifacts && npm publish",
+    "release-snapshot": "npm run build && npm run clean:artifacts && npm version 0.0.0-snapshot.$(git rev-parse --short HEAD) --git-tag-version=false && npm publish --no-git-checks --tag snapshot --access public"
   }
 }
