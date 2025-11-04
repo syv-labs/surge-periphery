@@ -1,0 +1,44 @@
+name: Release to NPM
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup and Build
+        uses: ./.github/actions/setup
+
+      - name: Get package version
+        id: package_version
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Get current branch/tag
+        id: ref
+        run: |
+          if [ "${{ github.ref_type }}" == "tag" ]; then
+            echo "ref=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          else
+            echo "ref=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate version match
+        run: |
+          PACKAGE_VERSION="${{ steps.package_version.outputs.version }}"
+          REF_NAME="${{ steps.ref.outputs.ref }}"
+          # Remove 'v' prefix if present
+          REF_VERSION="${REF_NAME#v}"
+          if [ "$REF_VERSION" != "$PACKAGE_VERSION" ]; then
+            echo "Version mismatch!"
+            echo "Package version: $PACKAGE_VERSION"
+            echo "Tag/Branch version: $REF_VERSION"
+            exit 1
+          fi
+          echo "Version match: $PACKAGE_VERSION"
+
+      - name: Publish to NPM
+        run: npm run release
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+

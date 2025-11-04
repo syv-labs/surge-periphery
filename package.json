@@ -5,7 +5,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.4.4",
+  "version": "1.0.0",
   "homepage": "https://syv-labs.org",
   "keywords": [
     "syv-labs",
@@ -16,13 +16,14 @@
     "url": "https://github.com/syv-labs/surge-periphery"
   },
   "files": [
-    "contracts/base",
-    "contracts/interfaces",
-    "contracts/libraries",
-    "artifacts/contracts/**/*.json",
+    "contracts/",
+    "artifacts/contracts/",
+    "!artifacts/contracts/test/**",
+    "!artifacts/contracts/examples/**",
     "!artifacts/contracts/**/*.dbg.json",
-    "!artifacts/contracts/test/**/*",
-    "!artifacts/contracts/base/**/*"
+    "!artifacts/contracts/**/build-info",
+    "!contracts/test/**",
+    "!contracts/examples/**",
   ],
   "engines": {
     "node": ">=10"
@@ -62,6 +63,9 @@
   },
   "scripts": {
     "compile": "hardhat compile",
-    "test": "hardhat test"
+    "test": "hardhat test",
+    "build": "hardhat clean && hardhat compile",
+    "release": "npm publish",
+    "release-snapshot": "npm version 0.0.0-snapshot.$(git rev-parse --short HEAD) --git-tag-version=false && npm publish --no-git-checks --tag snapshot --access public"
   }
 }
