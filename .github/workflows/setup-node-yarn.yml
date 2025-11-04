@@ -1,14 +1,10 @@
-name: Publish to NPM
+name: Setup Node.js and Yarn
 
 on:
-  workflow_dispatch:
+  workflow_call:
 
 jobs:
   setup:
-    uses: ./.github/workflows/setup-node-yarn.yml
-
-  publish:
-    needs: setup
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -40,10 +36,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-modules-
 
-      - name: Build package
-        run: npx hardhat compile
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
 
-      - name: Publish to NPM
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
