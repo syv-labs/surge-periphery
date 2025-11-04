@@ -16,12 +16,14 @@
     "url": "https://github.com/syv-labs/surge-periphery"
   },
   "files": [
-    "contracts/base",
-    "contracts/interfaces",
-    "contracts/libraries",
+    "contracts/",
     "artifacts/contracts/",
     "!artifacts/contracts/test/**",
-    "!artifacts/contracts/examples/**"
+    "!artifacts/contracts/examples/**",
+    "!artifacts/contracts/**/*.dbg.json",
+    "!artifacts/contracts/**/build-info",
+    "!contracts/test/**",
+    "!contracts/examples/**",
   ],
   "engines": {
     "node": ">=10"
