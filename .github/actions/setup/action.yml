@@ -9,7 +9,6 @@ runs:
       with:
         node-version: '18'
         registry-url: 'https://registry.npmjs.org'
-      shell: bash
 
     - name: Install dependencies
       run: yarn install --frozen-lockfile
