@@ -1,16 +1,7 @@
-name: Publish to NPM
+name: Release to NPM
 
 on:
   workflow_dispatch:
-    inputs:
-      release_type:
-        description: 'Release type'
-        required: true
-        type: choice
-        options:
-          - release
-          - release-snapshot
-        default: 'release'
 
 jobs:
   publish:
@@ -33,7 +24,6 @@ jobs:
           fi
 
       - name: Validate version match
-        if: inputs.release_type == 'release'
         run: |
           PACKAGE_VERSION="${{ steps.package_version.outputs.version }}"
           REF_NAME="${{ steps.ref.outputs.ref }}"
@@ -48,7 +38,7 @@ jobs:
           echo "Version match: $PACKAGE_VERSION"
 
       - name: Publish to NPM
-        run: npm run ${{ inputs.release_type }}
+        run: npm run release
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
