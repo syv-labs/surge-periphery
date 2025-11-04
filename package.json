@@ -19,10 +19,20 @@
     "contracts/base",
     "contracts/interfaces",
     "contracts/libraries",
-    "artifacts/contracts/**/*.json",
+    "artifacts/contracts/SwapRouter.sol/SwapRouter.json",
+    "artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json",
+    "artifacts/contracts/NonfungibleTokenPositionDescriptor.sol/NonfungibleTokenPositionDescriptor.json",
+    "artifacts/contracts/lens/Quoter.sol/Quoter.json",
+    "artifacts/contracts/lens/QuoterV2.sol/QuoterV2.json",
+    "artifacts/contracts/lens/TickLens.sol/TickLens.json",
+    "artifacts/contracts/lens/InterfaceMulticall.sol/InterfaceMulticall.json",
+    "artifacts/contracts/interfaces/**/*.json",
+    "artifacts/contracts/libraries/**/*.json",
     "!artifacts/contracts/**/*.dbg.json",
-    "!artifacts/contracts/test/**/*",
-    "!artifacts/contracts/base/**/*"
+    "!artifacts/contracts/**/build-info",
+    "!artifacts/contracts/test/**",
+    "!artifacts/contracts/base/**",
+    "!artifacts/contracts/examples/**"
   ],
   "engines": {
     "node": ">=10"
@@ -64,8 +74,7 @@
     "compile": "hardhat compile",
     "test": "hardhat test",
     "build": "hardhat clean && hardhat compile",
-    "clean:artifacts": "find artifacts -name '*.dbg.json' -type f -delete && find artifacts -type d -name 'build-info' -exec rm -rf {} + 2>/dev/null || true",
-    "release": "npm run build && npm run clean:artifacts && npm publish",
-    "release-snapshot": "npm run build && npm run clean:artifacts && npm version 0.0.0-snapshot.$(git rev-parse --short HEAD) --git-tag-version=false && npm publish --no-git-checks --tag snapshot --access public"
+    "release": "npm run build && npm publish",
+    "release-snapshot": "npm run build && npm version 0.0.0-snapshot.$(git rev-parse --short HEAD) --git-tag-version=false && npm publish --no-git-checks --tag snapshot --access public"
   }
 }
