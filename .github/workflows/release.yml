@@ -38,7 +38,10 @@ jobs:
           echo "Version match: $PACKAGE_VERSION"
 
       - name: Publish to NPM
-        run: npm run release
+        run: |
+          # Temporarily change package name to @syvlabshq scope
+          npm pkg set name="@syvlabshq/surge-periphery"
+          npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
