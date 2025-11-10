@@ -16,14 +16,23 @@
     "url": "https://github.com/syv-labs/surge-periphery"
   },
   "files": [
-    "contracts/",
-    "artifacts/contracts/",
-    "!artifacts/contracts/test/**",
-    "!artifacts/contracts/examples/**",
+    "contracts/base",
+    "contracts/interfaces",
+    "contracts/libraries",
+    "artifacts/contracts/SwapRouter.sol/SwapRouter.json",
+    "artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json",
+    "artifacts/contracts/NonfungibleTokenPositionDescriptor.sol/NonfungibleTokenPositionDescriptor.json",
+    "artifacts/contracts/lens/Quoter.sol/Quoter.json",
+    "artifacts/contracts/lens/QuoterV2.sol/QuoterV2.json",
+    "artifacts/contracts/lens/TickLens.sol/TickLens.json",
+    "artifacts/contracts/lens/InterfaceMulticall.sol/InterfaceMulticall.json",
+    "artifacts/contracts/interfaces/**/*.json",
+    "artifacts/contracts/libraries/**/*.json",
     "!artifacts/contracts/**/*.dbg.json",
     "!artifacts/contracts/**/build-info",
-    "!contracts/test/**",
-    "!contracts/examples/**",
+    "!artifacts/contracts/test/**",
+    "!artifacts/contracts/base/**",
+    "!artifacts/contracts/examples/**"
   ],
   "engines": {
     "node": ">=10"

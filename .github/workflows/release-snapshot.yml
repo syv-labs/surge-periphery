@@ -11,7 +11,10 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Publish snapshot to NPM
-        run: npm run release-snapshot
+        run: |
+          # Temporarily change package name to @syvlabshq scope
+          npm pkg set name="@syvlabshq/surge-periphery"
+          npm version 0.0.0-snapshot.$(git rev-parse --short HEAD) --git-tag-version=false
+          npm publish --no-git-checks --tag snapshot --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
