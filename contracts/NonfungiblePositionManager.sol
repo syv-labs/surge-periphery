@@ -68,16 +68,23 @@ contract NonfungiblePositionManager is
     uint80 private _nextPoolId;
 
     /// @dev The address of the token descriptor contract, which handles generating token URIs for position tokens
-    address private _tokenDescriptor;
+    address private _tokenDescriptor; 
 
-    function initialize(address _factory, address _WETH9, address _tokenDescriptor_) public initializer {
+    address nativeTokenAddress;
+
+    function initialize(address _factory, address _WETH9, address _tokenDescriptor_, address _nativeTokenAddress) public initializer {
         _tokenDescriptor = _tokenDescriptor_;
         _nextId = 1;
         _nextPoolId = 1;
+        nativeTokenAddress = _nativeTokenAddress;
 
         __Erc721Permint_init(' Positions NFT-V1', 'UNI-POS', '1');
         __PeripheryImmutableState_init(_factory, _WETH9);
     }
+
+    // function checkPayable() internal view{
+    //     require(!(msg.value>0 && WETH9 == address(0)),'Do not send native value');
+    // }
 
     /// @inheritdoc INonfungiblePositionManager
     function positions(
@@ -139,7 +146,8 @@ contract NonfungiblePositionManager is
         checkDeadline(params.deadline)
         returns (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1)
     {
-        IPool pool;
+       
+       IPool pool;
         (liquidity, amount0, amount1, pool) = addLiquidity(
             AddLiquidityParams({
                 token0: params.token0,
@@ -151,9 +159,11 @@ contract NonfungiblePositionManager is
                 amount0Desired: params.amount0Desired,
                 amount1Desired: params.amount1Desired,
                 amount0Min: params.amount0Min,
-                amount1Min: params.amount1Min
+                amount1Min: params.amount1Min,
+                nativeTokenAddress: nativeTokenAddress
             })
         );
+
 
         _mint(params.recipient, (tokenId = _nextId++));
 
@@ -165,6 +175,7 @@ contract NonfungiblePositionManager is
             address(pool),
             PoolAddress.PoolKey({token0: params.token0, token1: params.token1, fee: params.fee})
         );
+
 
         _positions[tokenId] = Position({
             nonce: 0,
@@ -179,12 +190,12 @@ contract NonfungiblePositionManager is
             tokensOwed1: 0
         });
 
+
         emit IncreaseLiquidity(tokenId, liquidity, amount0, amount1);
     }
 
-    modifier isAuthorizedForToken(uint256 tokenId) {
+    function isAuthorizedForToken(uint256 tokenId) internal view {
         require(_isApprovedOrOwner(msg.sender, tokenId), 'Not approved');
-        _;
     }
 
     function tokenURI(
@@ -211,6 +222,7 @@ contract NonfungiblePositionManager is
 
         PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
 
+        
         IPool pool;
         (liquidity, amount0, amount1, pool) = addLiquidity(
             AddLiquidityParams({
@@ -223,7 +235,8 @@ contract NonfungiblePositionManager is
                 amount1Desired: params.amount1Desired,
                 amount0Min: params.amount0Min,
                 amount1Min: params.amount1Min,
-                recipient: address(this)
+                recipient: address(this),
+                nativeTokenAddress: nativeTokenAddress
             })
         );
 
@@ -261,10 +274,11 @@ contract NonfungiblePositionManager is
         external
         payable
         override
-        isAuthorizedForToken(params.tokenId)
         checkDeadline(params.deadline)
         returns (uint256 amount0, uint256 amount1)
     {
+        
+        isAuthorizedForToken(params.tokenId);
         require(params.liquidity > 0);
         Position storage position = _positions[params.tokenId];
 
@@ -311,7 +325,9 @@ contract NonfungiblePositionManager is
     /// @inheritdoc INonfungiblePositionManager
     function collect(
         CollectParams calldata params
-    ) external payable override isAuthorizedForToken(params.tokenId) returns (uint256 amount0, uint256 amount1) {
+    ) external payable override returns (uint256 amount0, uint256 amount1) {
+        
+        isAuthorizedForToken(params.tokenId);
         require(params.amount0Max > 0 || params.amount1Max > 0);
         // allow collecting to the nft position manager address with address 0
         address recipient = params.recipient == address(0) ? address(this) : params.recipient;
@@ -373,7 +389,9 @@ contract NonfungiblePositionManager is
     }
 
     /// @inheritdoc INonfungiblePositionManager
-    function burn(uint256 tokenId) external payable override isAuthorizedForToken(tokenId) {
+    function burn(uint256 tokenId) external payable override {
+        
+        isAuthorizedForToken(tokenId);
         Position storage position = _positions[tokenId];
         require(position.liquidity == 0 && position.tokensOwed0 == 0 && position.tokensOwed1 == 0, 'Not cleared');
         delete _positions[tokenId];
