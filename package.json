@@ -18,12 +18,15 @@
   "files": [
     "contracts/",
     "artifacts/contracts/",
-    "!artifacts/contracts/test/**",
-    "!artifacts/contracts/examples/**",
+    "LICENSE",
+    "hardhat.config.ts",
+    "README.md",
     "!artifacts/contracts/**/*.dbg.json",
     "!artifacts/contracts/**/build-info",
     "!contracts/test/**",
-    "!contracts/examples/**"
+    "!contracts/examples/**",
+    "!artifacts/contracts/test/**",
+    "!artifacts/contracts/examples/**"
   ],
   "engines": {
     "node": ">=10"
