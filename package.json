@@ -1,5 +1,5 @@
 {
-  "name": "@syv-labs/surge-periphery",
+  "name": "@syvlabshq/surge-periphery",
   "description": "🎚 Peripheral smart contracts",
   "license": "GPL-2.0-or-later",
   "publishConfig": {
@@ -16,6 +16,7 @@
     "url": "https://github.com/syv-labs/surge-periphery"
   },
   "files": [
+    "LICENSE",
     "contracts/base",
     "contracts/interfaces",
     "contracts/libraries",
@@ -32,7 +33,8 @@
     "!artifacts/contracts/**/build-info",
     "!artifacts/contracts/test/**",
     "!artifacts/contracts/base/**",
-    "!artifacts/contracts/examples/**"
+    "!artifacts/contracts/examples/**",
+    "hardhat.config.ts"
   ],
   "engines": {
     "node": ">=10"
