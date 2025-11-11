@@ -31,10 +31,8 @@
     "artifacts/contracts/libraries/**/*.json",
     "!artifacts/contracts/**/*.dbg.json",
     "!artifacts/contracts/**/build-info",
-    "!artifacts/contracts/test/**",
-    "!artifacts/contracts/base/**",
-    "!artifacts/contracts/examples/**",
-    "hardhat.config.ts"
+    "!contracts/test/**",
+    "!contracts/examples/**"
   ],
   "engines": {
     "node": ">=10"
