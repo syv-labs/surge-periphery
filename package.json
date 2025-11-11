@@ -23,7 +23,7 @@
     "!artifacts/contracts/**/*.dbg.json",
     "!artifacts/contracts/**/build-info",
     "!contracts/test/**",
-    "!contracts/examples/**",
+    "!contracts/examples/**"
   ],
   "engines": {
     "node": ">=10"
