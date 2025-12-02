@@ -75,7 +75,7 @@ contract NonfungiblePositionManager is
         _nextId = 1;
         _nextPoolId = 1;
 
-        __Erc721Permint_init(' Positions NFT-V1', 'UNI-POS', '1');
+        __Erc721Permint_init(' Positions NFT-V1', 'SURGE-POS', '1');
         __PeripheryImmutableState_init(_factory, _WETH9);
     }
 
