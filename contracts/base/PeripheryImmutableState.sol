@@ -20,4 +20,5 @@ abstract contract PeripheryImmutableState is IPeripheryImmutableState, Initializ
         factory = _factory;
         WETH9 = _WETH9;
     }
+    
 }

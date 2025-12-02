@@ -19,6 +19,8 @@ abstract contract LiquidityManagement is IMintCallback, PeripheryImmutableState,
     struct MintCallbackData {
         PoolAddress.PoolKey poolKey;
         address payer;
+        uint256 msgVal;
+        address nativeTokenAddress;
     }
 
     /// @inheritdoc IMintCallback
@@ -26,8 +28,22 @@ abstract contract LiquidityManagement is IMintCallback, PeripheryImmutableState,
         MintCallbackData memory decoded = abi.decode(data, (MintCallbackData));
         CallbackValidation.verifyCallback(factory, decoded.poolKey);
 
-        if (amount0Owed > 0) pay(decoded.poolKey.token0, decoded.payer, msg.sender, amount0Owed);
-        if (amount1Owed > 0) pay(decoded.poolKey.token1, decoded.payer, msg.sender, amount1Owed);
+        address payer0 = decoded.payer;
+        address payer1 = decoded.payer;
+
+        if(WETH9 == address(0) && decoded.msgVal > 0){ 
+            if(decoded.poolKey.token0 == decoded.nativeTokenAddress) { 
+                require(decoded.msgVal >= amount0Owed);
+                payer0 = address(this);
+            }
+
+            if(decoded.poolKey.token1 == decoded.nativeTokenAddress) { 
+                require(decoded.msgVal >= amount1Owed);
+                payer1 = address(this);
+            }
+        }  
+        if (amount0Owed > 0) pay(decoded.poolKey.token0, payer0, msg.sender, amount0Owed);
+        if (amount1Owed > 0) pay(decoded.poolKey.token1, payer1, msg.sender, amount1Owed);
     }
 
     struct AddLiquidityParams {
@@ -41,6 +57,7 @@ abstract contract LiquidityManagement is IMintCallback, PeripheryImmutableState,
         uint256 amount1Desired;
         uint256 amount0Min;
         uint256 amount1Min;
+        address nativeTokenAddress;
     }
 
     /// @notice Add liquidity to an initialized pool
@@ -70,12 +87,13 @@ abstract contract LiquidityManagement is IMintCallback, PeripheryImmutableState,
             );
         }
 
+
         (amount0, amount1) = pool.mint(
             params.recipient,
             params.tickLower,
             params.tickUpper,
             liquidity,
-            abi.encode(MintCallbackData({poolKey: poolKey, payer: msg.sender}))
+            abi.encode(MintCallbackData({poolKey: poolKey, payer: msg.sender, msgVal: msg.value, nativeTokenAddress: params.nativeTokenAddress}))
         );
 
         require(amount0 >= params.amount0Min && amount1 >= params.amount1Min, 'Price slippage check');

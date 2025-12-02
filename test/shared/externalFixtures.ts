@@ -37,7 +37,8 @@ import {
   
     const router = (await (await ethers.getContractFactory('MockTimeSwapRouter')).deploy(
       factory.address,
-      weth9.address
+      weth9.address,
+      "0x0000000000000000000000000000000000000000"
     )) as MockTimeSwapRouter
   
     return { factory, weth9, router }

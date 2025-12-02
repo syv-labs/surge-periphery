@@ -28,7 +28,6 @@ library PoolAddress {
     /// @return pool The contract address of the pool
     function computeAddress(address factory, PoolKey memory key) internal view returns (address pool) {
         require(key.token0 < key.token1);
-
         return IFactory(factory).getPool(key.token0, key.token1, key.fee);
     }
 }
