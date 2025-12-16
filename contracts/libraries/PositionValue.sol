@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.6.8 <0.8.0;
 
-import '@syvlabs/surge-core/contracts/interfaces/IPool.sol';
-import '@syvlabs/surge-core/contracts/libraries/FixedPoint128.sol';
-import '@syvlabs/surge-core/contracts/libraries/TickMath.sol';
-import '@syvlabs/surge-core/contracts/libraries/Tick.sol';
+import '@syvlabshq/surge-core/contracts/interfaces/IPool.sol';
+import '@syvlabshq/surge-core/contracts/libraries/FixedPoint128.sol';
+import '@syvlabshq/surge-core/contracts/libraries/TickMath.sol';
+import '@syvlabshq/surge-core/contracts/libraries/Tick.sol';
 import '../interfaces/INonfungiblePositionManager.sol';
 import './LiquidityAmounts.sol';
 import './PoolAddress.sol';

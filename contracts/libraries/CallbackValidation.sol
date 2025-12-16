@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity =0.7.6;
 
-import '@syvlabs/surge-core/contracts/interfaces/IPool.sol';
+import '@syvlabshq/surge-core/contracts/interfaces/IPool.sol';
 import './PoolAddress.sol';
 
 /// @notice Provides validation for callbacks from Pools

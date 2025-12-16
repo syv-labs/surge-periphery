@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.6.0;
 
-import '@syvlabs/surge-core/contracts/interfaces/IPool.sol';
+import '@syvlabshq/surge-core/contracts/interfaces/IPool.sol';
 
 library PoolTicksCounter {
     /// @dev This function counts the number of initialized ticks that would incur a gas cost between tickBefore and tickAfter.

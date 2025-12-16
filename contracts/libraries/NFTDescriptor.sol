@@ -2,10 +2,10 @@
 pragma solidity >=0.7.0;
 pragma abicoder v2;
 
-import '@syvlabs/surge-core/contracts/interfaces/IPool.sol';
-import '@syvlabs/surge-core/contracts/libraries/TickMath.sol';
-import '@syvlabs/surge-core/contracts/libraries/BitMath.sol';
-import '@syvlabs/surge-core/contracts/libraries/FullMath.sol';
+import '@syvlabshq/surge-core/contracts/interfaces/IPool.sol';
+import '@syvlabshq/surge-core/contracts/libraries/TickMath.sol';
+import '@syvlabshq/surge-core/contracts/libraries/BitMath.sol';
+import '@syvlabshq/surge-core/contracts/libraries/FullMath.sol';
 import '@openzeppelin/contracts/utils/Strings.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
 import '@openzeppelin/contracts/math/SignedSafeMath.sol';

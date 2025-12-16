@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.5.0 <0.8.0;
 
-import '@syvlabs/surge-core/contracts/libraries/FullMath.sol';
-import '@syvlabs/surge-core/contracts/libraries/TickMath.sol';
-import '@syvlabs/surge-core/contracts/interfaces/IPool.sol';
+import '@syvlabshq/surge-core/contracts/libraries/FullMath.sol';
+import '@syvlabshq/surge-core/contracts/libraries/TickMath.sol';
+import '@syvlabshq/surge-core/contracts/interfaces/IPool.sol';
 
 /// @title Oracle library
 /// @notice Provides functions to integrate with pool oracle

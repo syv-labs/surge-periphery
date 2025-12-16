@@ -2,7 +2,7 @@
 pragma solidity >=0.5.0;
 pragma abicoder v2;
 
-import '@syvlabs/surge-core/contracts/interfaces/IPool.sol';
+import '@syvlabshq/surge-core/contracts/interfaces/IPool.sol';
 import '../lens/TickLens.sol';
 
 /// @title Tick Lens contract
