@@ -2,8 +2,8 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import '@syvlabs/surge-core/contracts/interfaces/callback/IFlashCallback.sol';
-import '@syvlabs/surge-core/contracts/libraries/LowGasSafeMath.sol';
+import '@syvlabshq/surge-core/contracts/interfaces/callback/IFlashCallback.sol';
+import '@syvlabshq/surge-core/contracts/libraries/LowGasSafeMath.sol';
 
 import '../base/PeripheryPayments.sol';
 import '../base/PeripheryImmutableState.sol';

@@ -2,9 +2,9 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import '@syvlabs/surge-core/contracts/interfaces/IPool.sol';
-import '@syvlabs/surge-core/contracts/libraries/FixedPoint128.sol';
-import '@syvlabs/surge-core/contracts/libraries/FullMath.sol';
+import '@syvlabshq/surge-core/contracts/interfaces/IPool.sol';
+import '@syvlabshq/surge-core/contracts/libraries/FixedPoint128.sol';
+import '@syvlabshq/surge-core/contracts/libraries/FullMath.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/Initializable.sol';
 
 import './interfaces/INonfungiblePositionManager.sol';

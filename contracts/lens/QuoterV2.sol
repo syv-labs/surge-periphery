@@ -2,11 +2,11 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import '@syvlabs/surge-core/contracts/libraries/SafeCast.sol';
-import '@syvlabs/surge-core/contracts/libraries/TickMath.sol';
-import '@syvlabs/surge-core/contracts/libraries/TickBitmap.sol';
-import '@syvlabs/surge-core/contracts/interfaces/IPool.sol';
-import '@syvlabs/surge-core/contracts/interfaces/callback/ISwapCallback.sol';
+import '@syvlabshq/surge-core/contracts/libraries/SafeCast.sol';
+import '@syvlabshq/surge-core/contracts/libraries/TickMath.sol';
+import '@syvlabshq/surge-core/contracts/libraries/TickBitmap.sol';
+import '@syvlabshq/surge-core/contracts/interfaces/IPool.sol';
+import '@syvlabshq/surge-core/contracts/interfaces/callback/ISwapCallback.sol';
 
 import '@openzeppelin/contracts-upgradeable/proxy/Initializable.sol';
 

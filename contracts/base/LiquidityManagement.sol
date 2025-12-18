@@ -2,9 +2,9 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import '@syvlabs/surge-core/contracts/interfaces/IFactory.sol';
-import '@syvlabs/surge-core/contracts/interfaces/callback/IMintCallback.sol';
-import '@syvlabs/surge-core/contracts/libraries/TickMath.sol';
+import '@syvlabshq/surge-core/contracts/interfaces/IFactory.sol';
+import '@syvlabshq/surge-core/contracts/interfaces/callback/IMintCallback.sol';
+import '@syvlabshq/surge-core/contracts/libraries/TickMath.sol';
 
 import '../libraries/PoolAddress.sol';
 import '../libraries/CallbackValidation.sol';

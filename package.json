@@ -5,7 +5,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.0.0",
+  "version": "0.0.1-snapshot.fd107ba",
   "homepage": "https://syv-labs.org",
   "keywords": [
     "syv-labs",
@@ -35,7 +35,7 @@
     "@openzeppelin/contracts": "3.4.2-solc-0.7",
     "@openzeppelin/contracts-upgradeable": "3.4.2-solc-0.7",
     "@openzeppelin/hardhat-upgrades": "1.22.1",
-    "@syvlabs/surge-core": "https://github.com/syv-labs/surge-core",
+    "@syvlabshq/surge-core": "^0.0.1-snapshot.0a3bb58",
     "base64-sol": "1.0.1"
   },
   "devDependencies": {
@@ -69,6 +69,6 @@
     "test": "hardhat test",
     "build": "hardhat clean && hardhat compile",
     "release": "npm publish",
-    "release-snapshot": "npm version 0.0.0-snapshot.$(git rev-parse --short HEAD) --git-tag-version=false && npm publish --no-git-checks --tag snapshot --access public"
+    "release-snapshot": "npm version 0.0.1-snapshot.$(git rev-parse --short HEAD) --git-tag-version=false && npm publish --no-git-checks --tag snapshot --access public"
   }
 }

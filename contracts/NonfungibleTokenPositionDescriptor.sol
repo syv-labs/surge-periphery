@@ -2,7 +2,7 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import '@syvlabs/surge-core/contracts/interfaces/IPool.sol';
+import '@syvlabshq/surge-core/contracts/interfaces/IPool.sol';
 import './libraries/SafeERC20Namer.sol';
 
 import '@openzeppelin/contracts-upgradeable/proxy/Initializable.sol';
