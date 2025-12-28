@@ -100,6 +100,58 @@ contract QuoterV2 is Initializable, IQuoterV2, ISwapCallback, PeripheryImmutable
         return (amount, sqrtPriceX96After, initializedTicksCrossed, gasEstimate);
     }
 
+    function quoteMultiplePaths(
+        bytes[] memory paths,
+        uint256 amountsIn
+    ) external returns (
+        uint256[] memory amountOut,
+        uint160[][] memory sqrtPriceX96AfterList,
+        uint32[][] memory initializedTicksCrossedList,
+        uint256[] memory gasEstimate
+    ) {
+        amountOut = new uint256[](paths.length);
+        sqrtPriceX96AfterList = new uint160[][](paths.length);
+        initializedTicksCrossedList = new uint32[][](paths.length);
+        gasEstimate = new uint256[](paths.length);
+
+        for (uint256 i = 0; i < paths.length; ++i) {
+            (
+                amountOut[i],
+                sqrtPriceX96AfterList[i],
+                initializedTicksCrossedList[i],
+                gasEstimate[i]
+            ) = quoteExactInput(paths[i], amountsIn);
+        }
+    }
+
+    function quoteMultipleTokens(QuoteMultipleTokenParams memory params) external returns (uint256[] memory, uint160[] memory, uint32[] memory, uint256[] memory) {
+        require(params.tokenOut.length == params.fee.length, "length not equal");
+
+        uint256[] memory amountOut = new uint256[](params.tokenOut.length);
+        uint160[] memory sqrtPriceX96After = new uint160[](params.tokenOut.length);
+        uint32[] memory initializedTicksCrossed = new uint32[](params.tokenOut.length);
+        uint256[] memory gasEstimate = new uint256[](params.tokenOut.length);
+
+        for (uint256 i = 0; i < params.tokenOut.length; ++i) {            (
+                amountOut[i],
+                sqrtPriceX96After[i],
+                initializedTicksCrossed[i],
+                gasEstimate[i]
+            ) = quoteExactInputSingle(
+                    QuoteExactInputSingleParams({
+                        tokenIn: params.tokenIn,
+                        tokenOut: params.tokenOut[i],
+                        fee: params.fee[i],
+                        amountIn: params.amountIn,
+                        sqrtPriceLimitX96: 0
+                    })
+            );
+        }
+
+        return (amountOut, sqrtPriceX96After, initializedTicksCrossed, gasEstimate);
+
+    }
+
     function quoteExactInputSingle(
         QuoteExactInputSingleParams memory params
     )
